@@ -1,0 +1,94 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Picture to QR Generator</title>
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <main class="container">
+        <header class="header">
+            <div class="logo">QR</div>
+            <p class="eyebrow">SMART IMAGE SHARING</p>
+            <h1>Picture to QR Code</h1>
+            <p class="subtitle">
+                Upload your picture and create a QR code
+                that opens it with a scan.
+            </p>
+        </header>
+
+        <section class="card">
+            <form action="{{ url_for('upload') }}"
+                  method="POST" enctype="multipart/form-data">
+
+                <label for="picture" class="upload-area">
+                    <span class="upload-icon">↑</span>
+                    <strong>Choose your picture</strong>
+                    <span>PNG, JPG, JPEG or WEBP · Maximum 5 MB</span>
+                    <input type="file" id="picture" name="picture"
+                           accept=".png,.jpg,.jpeg,.webp"
+                           required>
+                </label>
+
+                <p id="file-name" class="file-name">
+                    No picture selected
+                </p>
+
+                <button type="submit" class="generate-btn">
+                    Generate QR Code →
+                </button>
+            </form>
+
+            {% if error %}
+                <div class="error">{{ error }}</div>
+            {% endif %}
+        </section>
+
+        {% if image_url and qr_url %}
+        <section class="result-card">
+            <div class="success">✓ QR Code generated successfully</div>
+
+            <h2>Your QR Code</h2>
+            <p class="muted">Scan this code to open your picture.</p>
+
+           <img class="qr-image"
+            src="{{ qr_preview_url }}"
+              alt="Generated picture QR code">
+
+            <a class="download-btn" href="{{ qr_url }}">
+                Download QR Code (PNG)
+            </a>
+
+            <div class="preview">
+                <h3>Uploaded Picture</h3>
+                <img src="{{ image_url }}" alt="Your uploaded picture">
+            </div>
+
+            <p class="link-label">Picture URL</p>
+            <a class="picture-link" href="{{ image_url }}" target="_blank"
+               rel="noopener noreferrer">
+                Open picture in browser
+            </a>
+        </section>
+        {% endif %}
+
+        <footer>
+            <p>Picture QR Generator · Built with Python & Flask</p>
+        </footer>
+    </main>
+
+    <script>
+        const pictureInput = document.getElementById("picture");
+        const fileName = document.getElementById("file-name");
+
+        pictureInput.addEventListener("change", function () {
+            fileName.textContent = this.files.length
+                ? this.files[0].name
+                : "No picture selected";
+        });
+    </script>
+</body>
+</html>
