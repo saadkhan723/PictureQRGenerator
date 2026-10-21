@@ -4,31 +4,131 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Picture to QR Generator</title>
+    <title>Picture & Link QR Generator</title>
+
     <link rel="stylesheet"
           href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
-    <main class="container">
-        <header class="header">
-            <div class="logo">QR</div>
-            <p class="eyebrow">SMART IMAGE SHARING</p>
-            <h1>Picture to QR Code</h1>
-            <p class="subtitle">
-                Upload your picture and create a QR code
-                that opens it with a scan.
-            </p>
-        </header>
 
-        <section class="card">
+    <style>
+        .tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 22px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            min-width: 110px;
+            padding: 12px 8px;
+            cursor: pointer;
+            border: 1px solid #d1d5db;
+            border-radius: 10px;
+            background: #f3f4f6;
+            color: #111827;
+            font-weight: 600;
+        }
+
+        .tab-btn.active {
+            background: #172554;
+            color: white;
+            border-color: #172554;
+        }
+
+        .tab-panel {
+            display: none;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        .link-input {
+            box-sizing: border-box;
+            display: block;
+            width: 100%;
+            padding: 14px;
+            margin: 12px 0;
+            border: 1px solid #cbd5e1;
+            border-radius: 9px;
+            font-size: 15px;
+        }
+
+        .qr-image {
+            display: block;
+            width: 100%;
+            max-width: 250px;
+            margin: 20px auto;
+        }
+
+        .result-card {
+            overflow-wrap: anywhere;
+        }
+
+        .result-card .preview img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .destination {
+            overflow-wrap: anywhere;
+        }
+
+        .error {
+            margin-top: 16px;
+        }
+    </style>
+</head>
+
+<body>
+<main class="container">
+
+    <header class="header">
+        <div class="logo">QR</div>
+        <p class="eyebrow">SMART SHARING</p>
+        <h1>QR Code Generator</h1>
+        <p class="subtitle">
+            Upload a picture or paste a picture or website link
+            to create a QR code.
+        </p>
+    </header>
+
+    <section class="card">
+
+        <div class="tabs">
+            <button type="button"
+                    class="tab-btn"
+                    data-tab="picture">
+                Upload Picture
+            </button>
+
+            <button type="button"
+                    class="tab-btn"
+                    data-tab="picture-url">
+                Picture URL
+            </button>
+
+            <button type="button"
+                    class="tab-btn"
+                    data-tab="link">
+                Website Link
+            </button>
+        </div>
+
+        <!-- OPTION 1: UPLOAD PICTURE -->
+        <div id="picture-panel" class="tab-panel">
             <form action="{{ url_for('upload') }}"
-                  method="POST" enctype="multipart/form-data">
+                  method="POST"
+                  enctype="multipart/form-data">
 
                 <label for="picture" class="upload-area">
                     <span class="upload-icon">↑</span>
                     <strong>Choose your picture</strong>
                     <span>PNG, JPG, JPEG or WEBP · Maximum 5 MB</span>
-                    <input type="file" id="picture" name="picture"
+
+                    <input type="file"
+                           id="picture"
+                           name="picture"
                            accept=".png,.jpg,.jpeg,.webp"
                            required>
                 </label>
@@ -38,57 +138,169 @@
                 </p>
 
                 <button type="submit" class="generate-btn">
-                    Generate QR Code →
+                    Generate Picture QR →
                 </button>
             </form>
+        </div>
 
-            {% if error %}
-                <div class="error">{{ error }}</div>
-            {% endif %}
-        </section>
+        <!-- OPTION 2: PICTURE URL -->
+        <div id="picture-url-panel" class="tab-panel">
+            <form action="{{ url_for('generate_picture_link') }}"
+                  method="POST">
 
-        {% if image_url and qr_url %}
-        <section class="result-card">
-            <div class="success">✓ QR Code generated successfully</div>
+                <label for="picture_link">
+                    <strong>Paste your picture URL</strong>
+                </label>
 
-            <h2>Your QR Code</h2>
-            <p class="muted">Scan this code to open your picture.</p>
+                <input
+                    class="link-input"
+                    type="url"
+                    id="picture_link"
+                    name="picture_link"
+                    placeholder="https://example.com/photo.jpg"
+                    maxlength="2048"
+                    required
+                >
 
-           <img class="qr-image"
-            src="{{ qr_preview_url }}"
-              alt="Generated picture QR code">
+                <p class="muted">
+                    Google Images se picture ka direct link copy
+                    karke yahan paste karo.
+                </p>
 
-            <a class="download-btn" href="{{ qr_url }}">
-                Download QR Code (PNG)
-            </a>
+                <button type="submit" class="generate-btn">
+                    Generate Picture QR →
+                </button>
+            </form>
+        </div>
 
-            <div class="preview">
-                <h3>Uploaded Picture</h3>
-                <img src="{{ image_url }}" alt="Your uploaded picture">
-            </div>
+        <!-- OPTION 3: WEBSITE LINK -->
+        <div id="link-panel" class="tab-panel">
+            <form action="{{ url_for('generate_link') }}"
+                  method="POST">
 
-            <p class="link-label">Picture URL</p>
-            <a class="picture-link" href="{{ image_url }}" target="_blank"
-               rel="noopener noreferrer">
-                Open picture in browser
-            </a>
-        </section>
+                <label for="link">
+                    <strong>Paste a website link</strong>
+                </label>
+
+                <input
+                    class="link-input"
+                    type="url"
+                    id="link"
+                    name="link"
+                    placeholder="https://www.youtube.com/"
+                    maxlength="2048"
+                    required
+                >
+
+                <p class="muted">
+                    YouTube, Facebook, websites and other HTTP/HTTPS links.
+                </p>
+
+                <button type="submit" class="generate-btn">
+                    Generate Website QR →
+                </button>
+            </form>
+        </div>
+
+        {% if error %}
+            <div class="error">{{ error }}</div>
         {% endif %}
 
-        <footer>
-            <p>Picture QR Generator · Built with Python & Flask</p>
-        </footer>
-    </main>
+    </section>
 
-    <script>
-        const pictureInput = document.getElementById("picture");
-        const fileName = document.getElementById("file-name");
+    <!-- GENERATED QR RESULT -->
+    {% if qr_url and qr_preview_url %}
+    <section class="result-card">
 
-        pictureInput.addEventListener("change", function () {
-            fileName.textContent = this.files.length
-                ? this.files[0].name
-                : "No picture selected";
+        <div class="success">
+            ✓ QR Code generated successfully
+        </div>
+
+        <h2>Your QR Code</h2>
+
+        <p class="muted">
+            {% if qr_type == "link" %}
+                Scan this QR code to open your website.
+            {% elif qr_type == "picture-url" %}
+                Scan this QR code to view the picture webpage.
+            {% else %}
+                Scan this QR code to open your uploaded picture.
+            {% endif %}
+        </p>
+
+        <img class="qr-image"
+             src="{{ qr_preview_url }}"
+             alt="Generated QR code">
+
+        <a class="download-btn" href="{{ qr_url }}">
+            Download QR Code (PNG)
+        </a>
+
+        {% if image_url and qr_type == "picture" %}
+        <div class="preview">
+            <h3>Uploaded Picture</h3>
+            <img src="{{ image_url }}" alt="Uploaded picture">
+        </div>
+        {% endif %}
+
+        {% if qr_target %}
+        <p class="link-label">QR destination</p>
+
+        <p class="destination">
+            <a class="picture-link"
+               href="{{ qr_target }}"
+               target="_blank"
+               rel="noopener noreferrer">
+                Open QR destination
+            </a>
+        </p>
+        {% endif %}
+
+    </section>
+    {% endif %}
+
+    <footer>
+        <p>Picture & Link QR Generator · Python & Flask</p>
+    </footer>
+
+</main>
+
+<script>
+    const pictureInput = document.getElementById("picture");
+    const fileName = document.getElementById("file-name");
+
+    pictureInput.addEventListener("change", function () {
+        fileName.textContent = this.files.length
+            ? this.files[0].name
+            : "No picture selected";
+    });
+
+    const activeTab = {{ (active_tab or 'picture') | tojson }};
+
+    function selectTab(tab) {
+        document.querySelectorAll(".tab-btn").forEach(button => {
+            button.classList.toggle(
+                "active",
+                button.dataset.tab === tab
+            );
         });
-    </script>
+
+        document.querySelectorAll(".tab-panel").forEach(panel => {
+            panel.classList.toggle(
+                "active",
+                panel.id === tab + "-panel"
+            );
+        });
+    }
+
+    document.querySelectorAll(".tab-btn").forEach(button => {
+        button.addEventListener("click", function () {
+            selectTab(this.dataset.tab);
+        });
+    });
+
+    selectTab(activeTab);
+</script>
+
 </body>
 </html>

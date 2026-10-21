@@ -1,5 +1,8 @@
-venv/
+.venv/
 __pycache__/
-.env
-uploads/
 *.pyc
+.env
+uploads/images/*
+uploads/qrcodes/*
+!uploads/images/.gitkeep
+!uploads/qrcodes/.gitkeep
